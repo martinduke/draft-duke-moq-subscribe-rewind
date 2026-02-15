@@ -3,7 +3,7 @@ title: "The Rewind Subscription Filter"
 abbrev: "moq-subscribe-rewind"
 category: std
 
-docname: draft-duke-moq-subscribe-rewind
+docname: draft-duke-moq-subscribe-rewind-latest
 submissiontype: IETF
 ipr: trust200902
 date: {DATE}
