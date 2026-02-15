@@ -5,6 +5,7 @@ category: std
 
 docname: draft-duke-moq-subscribe-rewind
 submissiontype: IETF
+ipr: trust200902
 date: {DATE}
 area: "Web and Internet Transport"
 workgroup: "Media Over QUIC"
@@ -25,7 +26,9 @@ author:
     organization: Google
     email: martin.h.duke@gmail.com
 
-normative
+stand_alone: true
+
+normative:
   MOQT: I-D.ietf-moq-transport
 
 informative:
