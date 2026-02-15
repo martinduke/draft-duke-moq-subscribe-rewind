@@ -13,12 +13,12 @@ keyword:
  - media over quic
  - subscribe
 venue:
-  group: Media Over Quic
-  type: Working Group
-  mail: moq@ietf.org
-  arch: https://mailarchive.ietf.org/arch/browse/moq/ 
-  github: martinduke/draft-duke-moq-subscribe-rewind
-  latest: https://martinduke.github.io/draft-duke-moq-subscribe-rewind/draft-duke-moq-subscribe-rewind.html
+  group: "Media Over QUIC"
+  type: "Working Group"
+  mail: "moq@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/moq/"
+  github: "martinduke/draft-duke-moq-subscribe-rewind"
+  latest: "https://martinduke.github.io/draft-duke-moq-subscribe-rewind/draft-duke-moq-subscribe-rewind.html"
 
 author:
  -
