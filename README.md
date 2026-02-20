@@ -1,13 +1,13 @@
-<!-- regenerate: on (set to off if you edit this file) -->
+<!-- regenerate: off (set to off if you edit this file) -->
 
 # The Rewind Subscription Filter
 
 This is the working area for the individual Internet-Draft, "The Rewind Subscription Filter".
 
-* [Editor's Copy](https://martinduke.github.io/draft-duke-moq-subscribe-rewind/#go.draft-duke-moq-subscribe-rewind.html)
+* [Editor's Copy](https://martinduke.github.io/draft-duke-moq-subscribe-rewind/)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-duke-moq-subscribe-rewind)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-duke-moq-subscribe-rewind)
-* [Compare Editor's Copy to Individual Draft](https://martinduke.github.io/draft-duke-moq-subscribe-rewind/#go.draft-duke-moq-subscribe-rewind.diff)
+* [Compare Editor's Copy to Individual Draft]((https://martinduke.github.io/draft-duke-moq-subscribe-rewind/diff)
 
 
 ## Contributing
