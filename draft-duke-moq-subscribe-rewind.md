@@ -250,5 +250,7 @@ There is no Setup Option registry, but if one arises, please add 0x16
 
 {:numbered="false"}
 
+# Acknowledgements
+
 Ian Swett designed many components of this proposal. Numerous members of the
 MOQ Working Group provided comments that refined our thinking.
