@@ -7,7 +7,7 @@ This is the working area for the individual Internet-Draft, "The Rewind Subscrip
 * [Editor's Copy](https://martinduke.github.io/draft-duke-moq-subscribe-rewind/)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-duke-moq-subscribe-rewind)
 * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-duke-moq-subscribe-rewind)
-* [Compare Editor's Copy to Individual Draft]((https://martinduke.github.io/draft-duke-moq-subscribe-rewind/diff)
+* [Compare Editor's Copy to Individual Draft](https://martinduke.github.io/draft-duke-moq-subscribe-rewind/diff)
 
 
 ## Contributing
