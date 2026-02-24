@@ -159,21 +159,9 @@ stream. It MAY simply omit the stream with higher object IDs.
 The publisher MUST NOT send Rewind Groups > 0 if it knows it is servicing a track
 with Group IDs that are not strictly increasing.
 
-## Restrictions Specific to Relays
+## Relays with No Existing Upstream Subscription
 
-If the publisher is a Relay, it has further restrictions.
-
-If there is an existing upstream SUBSCRIBE for the track, and the Relay can
-otherwise send an immediate SUBSCRIBE_OK, then the included REWIND_GROUPS range
-MUST either:
-
-* have a starting Location smaller than the LargestObject of the upstream
-SUBSCRIBE; or
-
-* have Objects in cache for each Group with a Group Id less than or equal to
-the Group ID in the upstream Largest Object.
-
-If a relay does not have an existing upstream SUBSCRIBE for the track,
+If a relay does not have an existing upstream subscription for the track,
 it SHOULD use a Rewind Groups filter with the same or larger value in its upstream
 SUBSCRIBE subject to the upstream's MAX_REWIND Setup Option. When it receives
 a SUBSCRIBE_OK from upstream, it SHOULD forward the REWIND_GROUPS parameter to
@@ -212,7 +200,7 @@ case, the publisher should terminate the session with error PROTOCOL_VIOLATION.
 
 ## REWIND_GROUPS Message Parameter
 
-In addition to the MessageParameters in Sec 9.2 of {{MOQT}}, add Rewind Groups
+In addition to the MessageParameters in Sec 9.2 of {{MOQT}}, add REWIND_GROUPS
 (0x16).
 
 It represents the number of groups before the LargestObject that will be
