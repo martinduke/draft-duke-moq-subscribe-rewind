@@ -163,7 +163,7 @@ with Group IDs that are not strictly increasing.
 
 If the publisher is a Relay, it has further restrictions.
 
-If there is an existing upstream SUBSCRIBE for the track, and the Relay can
+If there is an existing upstream Subscription for the track, and the Relay can
 otherwise send an immediate SUBSCRIBE_OK, then the included REWIND_GROUPS range
 MUST either:
 
