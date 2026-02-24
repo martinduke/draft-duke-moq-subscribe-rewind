@@ -171,7 +171,7 @@ additional contiguous Groups in cache.
 However, the relay MUST NOT send a REWIND_GROUPS parameter larger than each
 subscriber's original request.
 
-## Pseudocode 
+## Pseudocode
 
 The following pseudocode illustrates this logic:
 
@@ -218,7 +218,7 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
     if (HasObjectInGroup(group) {
       ++groups_to_rewind;
     }
-  } 
+  }
   for (subscriber : GetSubscribers()) {
     if (subscriber.HasRewindGroupsFilter() {
       SetRewindGroupsParameter(min(groups_to_rewind, subscriber.rewind_groups))
