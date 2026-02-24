@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-02-22T02:52:09.862653+00:00",
+  "timestamp": "2026-02-24T02:49:31.893863+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -56,26 +56,136 @@
       "id": "PR_kwDORQiQJ87FQC-t",
       "title": "Ian comments",
       "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/1",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2026-02-20T20:09:27Z",
-      "updatedAt": "2026-02-20T20:13:02Z",
+      "updatedAt": "2026-02-24T01:06:23Z",
       "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "baseRefName": "main",
       "baseRefOid": "602b73616320b62fd7c1a7da386f0e6b74083677",
       "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "headRefName": "ian",
-      "headRefOid": "98f918dfa049a7e4e3f5323df074aaab3a367685",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "fe797d4be9e65843f9ae14a21186623129c92772",
+      "closedAt": "2026-02-24T01:06:23Z",
+      "mergedAt": "2026-02-24T01:06:22Z",
+      "mergedBy": "martinduke",
+      "mergeCommit": {
+        "oid": "5a041a249ab3dfb1d4b07beb2842af18188f4df0"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDORQiQJ87lIaCm",
+          "commit": {
+            "abbreviatedOid": "98f918d"
+          },
+          "author": "ianswett",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Some small comments",
+          "createdAt": "2026-02-23T23:55:12Z",
+          "updatedAt": "2026-02-24T00:00:31Z",
+          "comments": [
+            {
+              "originalPosition": 105,
+              "body": "```suggestion\nIf there is an existing upstream Subscription for the track, and the Relay can\n```",
+              "createdAt": "2026-02-23T23:55:12Z",
+              "updatedAt": "2026-02-24T00:00:31Z"
+            },
+            {
+              "originalPosition": 109,
+              "body": "How would this not be true?",
+              "createdAt": "2026-02-23T23:56:15Z",
+              "updatedAt": "2026-02-24T00:00:31Z"
+            },
+            {
+              "originalPosition": 149,
+              "body": "Did you mean REWIND_GROUPS?",
+              "createdAt": "2026-02-23T23:59:36Z",
+              "updatedAt": "2026-02-24T00:00:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORQiQJ87lJLWM",
+          "commit": {
+            "abbreviatedOid": "98f918d"
+          },
+          "author": "martinduke",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T01:03:21Z",
+          "updatedAt": "2026-02-24T01:03:21Z",
+          "comments": [
+            {
+              "originalPosition": 109,
+              "body": "to be honest, I'm not sure what I was trying to communicate here. I eliminated some text.",
+              "createdAt": "2026-02-24T01:03:21Z",
+              "updatedAt": "2026-02-24T01:03:21Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "id": "PR_kwDORQiQJ87Fyr8E",
+      "title": "pseudocode",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/2",
+      "state": "MERGED",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "alan wanted pseudocode",
+      "createdAt": "2026-02-24T01:35:40Z",
+      "updatedAt": "2026-02-24T01:36:44Z",
+      "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "baseRefName": "main",
+      "baseRefOid": "5a041a249ab3dfb1d4b07beb2842af18188f4df0",
+      "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "headRefName": "pseudocode",
+      "headRefOid": "d49d3f9e86c808beca30ec8c28f285d0f78fdf29",
+      "closedAt": "2026-02-24T01:36:44Z",
+      "mergedAt": "2026-02-24T01:36:44Z",
+      "mergedBy": "martinduke",
+      "mergeCommit": {
+        "oid": "e10732cb258e0fa8bf45ffb1caf9a8a393db0a12"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORQiQJ87lJhwf",
+          "commit": {
+            "abbreviatedOid": "ed58aed"
+          },
+          "author": "github-actions",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-02-24T01:36:03Z",
+          "updatedAt": "2026-02-24T01:36:03Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "````suggestion\n## Pseudocode\n````",
+              "createdAt": "2026-02-24T01:36:03Z",
+              "updatedAt": "2026-02-24T01:36:03Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "````suggestion\n  }\n````",
+              "createdAt": "2026-02-24T01:36:03Z",
+              "updatedAt": "2026-02-24T01:36:03Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
