@@ -226,6 +226,7 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
   }
 }
 ~~~
+
 # Options and Parameters
 
 ## Setup Option MAX_REWIND
