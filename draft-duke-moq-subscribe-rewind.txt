@@ -78,12 +78,13 @@ Table of Contents
    4.  Publisher restrictions
      4.1.  Relays with No Existing Upstream Subscription
      4.2.  Pseudocode
-     4.3.  Setup Option MAX_REWIND
-     4.4.  Subscription Filter Rewind
-     4.5.  REWIND_GROUPS Message Parameter
-   5.  Security Considerations
-   6.  IANA Considerations
-   7.  Normative References
+   5.  Options and Parameters
+     5.1.  Setup Option MAX_REWIND
+     5.2.  Subscription Filter Rewind
+     5.3.  REWIND_GROUPS Message Parameter
+   6.  Security Considerations
+   7.  IANA Considerations
+   8.  Normative References
    Acknowledgements
    Author's Address
 
@@ -286,16 +287,16 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
   }
 }
 
-   # Options and Parameters
+5.  Options and Parameters
 
-4.3.  Setup Option MAX_REWIND
+5.1.  Setup Option MAX_REWIND
 
    In addition to the Setup Options in Sec 9.3.1 of [MOQT], the Setup
    Option MAX_REWIND (0x16) contains an integer that indicates the
    largest value that can be used in a Rewind Subscription Filter.  If
    it is missing, the peer MUST NOT send a Rewind Subscription Filter.
 
-4.4.  Subscription Filter Rewind
+5.2.  Subscription Filter Rewind
 
    In addition to the Subscription Filter Types in Sec 5.1.2. of [MOQT],
    add filter type Rewind (0x16).  The format is as follows:
@@ -315,7 +316,7 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
    Option was absent.  In either, case, the publisher should terminate
    the session with error PROTOCOL_VIOLATION.
 
-4.5.  REWIND_GROUPS Message Parameter
+5.3.  REWIND_GROUPS Message Parameter
 
    In addition to the MessageParameters in Sec 9.2 of [MOQT], add
    REWIND_GROUPS (0x16).
@@ -333,7 +334,7 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
    Subscriber MUST close the session with error PROTOCOL_VIOLATION if
    the ranges overlap.
 
-5.  Security Considerations
+6.  Security Considerations
 
    To the extent this reduces head-of-line-blocking and replaces
    upstream FETCHes to satisfy Joining FETCH at the relay, it can reduce
@@ -346,14 +347,14 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
    SHOULD limit the range encoded by the REWIND_GROUPS parameter when is
    likely to overwhelm the channel or the subscriber.
 
-6.  IANA Considerations
+7.  IANA Considerations
 
    Please add 0x16 (REWIND_GROUPS) to the Message Parameters registry.
 
    There is no Setup Option registry, but if one arises, please add 0x16
    (MAX_REWIND) to it.
 
-7.  Normative References
+8.  Normative References
 
    [MOQT]     Nandakumar, S., Vasiliev, V., Swett, I., and A. Frindell,
               "Media over QUIC Transport", Work in Progress, Internet-
