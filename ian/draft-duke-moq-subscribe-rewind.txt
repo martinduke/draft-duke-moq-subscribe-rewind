@@ -4,8 +4,8 @@
 
 Media Over QUIC                                                  M. Duke
 Internet-Draft                                                    Google
-Intended status: Standards Track                        20 February 2026
-Expires: 24 August 2026
+Intended status: Standards Track                        24 February 2026
+Expires: 28 August 2026
 
 
                      The Rewind Subscription Filter
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 August 2026.
+   This Internet-Draft will expire on 28 August 2026.
 
 Copyright Notice
 
@@ -223,7 +223,7 @@ Table of Contents
 
    If the publisher is a Relay, it has further restrictions.
 
-   If there is an existing upstream SUBSCRIBE for the track, and the
+   If there is an existing upstream Subscription for the track, and the
    Relay can otherwise send an immediate SUBSCRIBE_OK, then the included
    REWIND_GROUPS range MUST either:
 
