@@ -39,7 +39,8 @@ This document proposes a Media Over Quic Transport (MOQT) extension that enables
 a new Subscription Filter, so that a subscriber can request that a finite number
 of past groups be delivered with SUBSCRIBE semantics (multiple streams,
 potentially incomplete) rather than FETCH semantics (single stream, complete,
-head-of-line-blocking). Service of this request is best-effort by the publisher.
+head-of-line-blocking). Service of this request is best-effort by the publisher,
+and it intended to accelerate joining a track in some use cases.
 
 --- middle
 
@@ -90,61 +91,59 @@ request if it is able to do so from cache.
 
 Each endpoint sends the MAX_REWIND option in its SETUP message. The MAX_REWIND
 option contains an integer that indicates the maximum number of groups that
-the peer migth request in a Rewind subscription filter. If zero, the peer may
+the peer might request in a Rewind subscription filter. If zero, the peer may
 only request the current group. If absent, the peer MUST NOT send the Rewind
 subscription filter. This option is half-duplex; if an endpoint does not send
 the option, but receives it, it MAY use the Rewind Subscription Filter.
 
 An endpoint might populate the MAX_REWIND option by reporting how many Groups
 it habitually stores in cache to answer FETCH or service subscribers that are
-behind on delivery. Other heuristics are also possible.
+behind on delivery. Other heuristics are also possible, especially if Group IDs
+do not increment by one.
 
 A subscriber sends a SUBSCRIBE message and can include a Rewind Subscription
 Filter instead of some other Subscription filter type. A value of zero
 indicates it would like to receive the entire current group; a larger value
 indicates it would also like to receive the most recent complete groups as well.
 
-If the subscriber wants the Groups even if SUBSCRIBE semantics are not
+If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not
 available, it MAY also send a Joining FETCH message. The object range MAY be
 larger or smaller than specified in the Rewind filter.
 
 Upon receipt of a Rewind filter, the publisher MAY treat it as a Largest Object
 filter. It will typically do so if the track is not in cache. If it does not
-do so, it sends a "StartGroup" parameter in the SUBSCRIBE_OK. StartGroup
+do so, it sends a REWIND_GROUPS parameter in the SUBSCRIBE_OK. REWIND_GROUPS
 is an integer that indicates the number of Groups before the LargestObject
 parameter that will be served via SUBSCRIBE.
 
-Groups included in the StartGroup range will be delivered using SUBSCRIBE
+Groups included in the Rewind Groups range will be delivered using SUBSCRIBE
 semantics: datagrams or Subgroup streams, subject to the delivery timeout
 and group order specified in the SUBSCRIBE negotiation. Groups serviced via
 the Rewind filter are not delivered by any Joining FETCH associated with this
-SUBSCRIBE, though can be delivered by Standalone FETCH messages. In some cases,
-this means the Joining FETCH delivers an empty range.
+SUBSCRIBE, though they can be delivered by Standalone FETCH messages. In some
+cases, this means the Joining FETCH delivers an empty range.
+
+If the Joining FETCH range exceeds the Rewind range, the EndLocation reported
+in FETCH_OK is the highest Group ID outside the Rewind range.
 
 # Publisher restrictions
 
-The publisher MUST NOT include a Group in a range defined by the StartGroup
+If the SUBSCRIBE message includes the FORWARD parameter with value 1, the
+publisher MUST NOT send the REWIND_GROUPS parameter in SUBSCRIBE_OK.
+
+The publisher MUST NOT include a Group in a range defined by Rewind Groups
 unless:
 
-* There are objects in cache for the group.
+* There are objects in cache for the Group, and
+
+* Some objects in cache have either Datagram forwarding preference, or are
+known to constitute the beginning of a Subgroup;
+
 * The DELIVERY_TIMEOUT parameters for the SUBSCRIBE indicate the Group can
 still be sent.
 
-If the publisher is a Relay, it must also meet one of the following conditions
-for the objects populating the cache from that Group:
-
-* The cache was fully populated by FETCH message(s) that cover the entire
-Object ID range of the Group;
-
-* The cache was fully populated by an active upstream SUBSCRIBE with a Largest
-Object before the Group;
-
-* The cache was populated by FETCH message(s) that continuously covers a range
-starting at Object ID 0, and an active upstream SUBSCRIBE has Largest Object
-equal to or less than the end of that range.
-
 The publisher is not required to verify that it has all objects in the Group to
-include it a StartGroup range. In particular, Groups delivered via SUBSCRIBE
+include it in Rewind Groups range. In particular, Groups delivered via SUBSCRIBE
 might be missing objects and are still eligible for Rewind.
 
 The publisher MAY choose to report fewer groups than what meet these conditions.
@@ -157,8 +156,18 @@ Subgroup from upstream, and cannot account for all object IDs between the end
 of one and the beginning of another, it MUST NOT deliver them on the same
 stream. It MAY simply omit the stream with higher object IDs.
 
-The publisher MUST NOT send StartGroup > 0 if it knows it is servicing a track
+The publisher MUST NOT send Rewind Groups > 0 if it knows it is servicing a track
 with Group IDs that are not strictly increasing.
+
+## Relays with No Existing Upstream Subscription
+
+If a relay does not have an existing upstream subscription for the track,
+it SHOULD use a Rewind Groups filter with the same or larger value in its upstream
+SUBSCRIBE subject to the upstream's MAX_REWIND Setup Option. When it receives
+a SUBSCRIBE_OK from upstream, it SHOULD forward the REWIND_GROUPS parameter to
+any Subscriber(s) that sent a Rewind Groups filter, reducing the value to no
+more than the value in each subscriber's filter. It MUST NOT deliver Groups
+to a subscriber with a Group ID outside the reported range.
 
 # Options and Parameters
 
@@ -177,21 +186,21 @@ filter type Rewind (0x16). The format is as follows:
 ~~~
 Subscription Filter {
   Filter Type (vi64) = 0x16,
-  Start Group (vi64),
+  Rewind Groups (vi64),
 }
 ~~~
 
-A StartGroup of zero means that the subscriber requests SUBSCRIBE semantics
+A Rewind Groups of zero means that the subscriber requests SUBSCRIBE semantics
 from the beginning of the current group. A larger integer value includes that
 many past Groups in addition to the current Group.
 
-The StartGroup field MUST NOT exceed the value in the peer's MAX_REWIND Setup
+The Rewind Groups field MUST NOT exceed the value in the peer's MAX_REWIND Setup
 Option and the filter type MUST NOT be sent if the Option was absent. In either,
 case, the publisher should terminate the session with error PROTOCOL_VIOLATION.
 
-## START_GROUP Message Parameter
+## REWIND_GROUPS Message Parameter
 
-In addition to the MessageParameters in Sec 9.2 of {{MOQT}}, add StartGroup
+In addition to the MessageParameters in Sec 9.2 of {{MOQT}}, add REWIND_GROUPS
 (0x16).
 
 It represents the number of groups before the LargestObject that will be
@@ -199,11 +208,10 @@ delivered via SUBSCRIBE semantics.
 
 If the parameter is sent in response to a Subscription Filter other than
 Rewind, has a value greater than the Group ID of Largest Location, or exceeeds
-the Start Group field of the filter, the subscriber MUST close the session
 with error PROTOCOL_VIOLATION.
 
 The publisher MUST truncate the end of any Joining FETCH related to this
-SUBSCRIBE to end before Object zero of the Group encoded by START_GROUP. This
+SUBSCRIBE to end before Object zero of the Group encoded by REWIND_GROUPS. This
 might result in empty object ranges. The Subscriber MUST close the session
 with error PROTOCOL_VIOLATION if the ranges overlap.
 
@@ -217,19 +225,20 @@ However, SUBSCRIBE semantics consume more QUIC or Webtransport streams. Past
 Groups might contain a lot of data, and FETCH delivery is contained on a
 single stream to simplify the flow control of this data. Publishers, who are
 aware of the content of their cache, SHOULD limit the range encoded by the
-START_GROUP parameter when is likely to overwhelm the channel or the subscriber.
+REWIND_GROUPS parameter when is likely to overwhelm the channel or the subscriber.
 
 # IANA Considerations
 
-Please add 0x16 (START_GROUP) to the Message Parameters registry.
+Please add 0x16 (REWIND_GROUPS) to the Message Parameters registry.
 
 There is no Setup Option registry, but if one arises, please add 0x16
 (MAX_REWIND) to it.
 
 --- back
 
-# Acknowledgments
 {:numbered="false"}
+
+# Acknowledgements
 
 Ian Swett designed many components of this proposal. Numerous members of the
 MOQ Working Group provided comments that refined our thinking.
