@@ -163,12 +163,69 @@ with Group IDs that are not strictly increasing.
 
 If a relay does not have an existing upstream subscription for the track,
 it SHOULD use a Rewind Groups filter with the same or larger value in its upstream
-SUBSCRIBE subject to the upstream's MAX_REWIND Setup Option. When it receives
+SUBSCRIBE, subject to the upstream's MAX_REWIND Setup Option. When it receives
 a SUBSCRIBE_OK from upstream, it SHOULD forward the REWIND_GROUPS parameter to
-any Subscriber(s) that sent a Rewind Groups filter, reducing the value to no
-more than the value in each subscriber's filter. It MUST NOT deliver Groups
-to a subscriber with a Group ID outside the reported range.
+any Subscriber(s) that sent a Rewind Groups filter. It MAY supplement with
+additional contiguous Groups in cache.
 
+However, the relay MUST NOT send a REWIND_GROUPS parameter larger than each
+subscriber's original request.
+
+## Pseudocode
+
+The following pseudocode illustrates this logic:
+
+~~~
+bool HasObjectInGroup(group_id) {
+  for (object : cache.group[group_id]) {
+    if (object.IsFirstInSubgroup()) {
+      return true
+    }
+  }
+  return false
+}
+
+void OnRewindFilterNeedUpstreamSubscribe(groups_to_rewind) {
+  if (groups_to_rewind > kMyMaxRewind) {
+    ProtocolError()
+  }
+  if (!Upstream.MaxRewind().exists()) {
+    return
+  }
+  SetUpstreamSubscribeFilter(kRewind, min(groups_to_rewind,
+			                  Upstream.MaxRewind())
+}
+
+void OnRewindFilterHaveSubscription(groups_to_rewind) {
+  if (groups_to_rewind > kMyMaxRewind) {
+    ProtocolError()
+  }
+  while (group = largest_observed_group;
+         group >= largest_observed_group - groups_to_rewind;  --group) {
+    if (!GroupExists(group) || !HasObjectInGroup(group)) {
+      break
+    }
+  }
+  if (group != largest_observed_group) {
+    SetRewindGroupsParameter(largest_observed_group - group - 1)
+  }
+}
+
+// called on SUBSCRIBE_OK at the relay.
+void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
+  // Supplement upstream response with any groups in cache
+  for (group = largest_group - groups_to_rewind; group.exists(); --group) {
+    if (HasObjectInGroup(group) {
+      ++groups_to_rewind;
+    }
+  }
+  for (subscriber : GetSubscribers()) {
+    if (subscriber.HasRewindGroupsFilter() {
+      SetRewindGroupsParameter(min(groups_to_rewind, subscriber.rewind_groups))
+    }
+  }
+}
+~~~
 # Options and Parameters
 
 ## Setup Option MAX_REWIND
