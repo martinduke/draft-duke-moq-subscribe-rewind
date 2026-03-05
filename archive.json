@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-03T02:49:36.019502+00:00",
+  "timestamp": "2026-03-05T02:45:17.171047+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -49,7 +49,24 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 3,
+      "id": "I_kwDORQiQJ87vjuVy",
+      "title": "afrind review",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/3",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Section 1\n\n> Subscribers can send SUBSCRIBE messages to receive messages that arrive at\n\nSubscribers can send SUBSCRIBE messages to receive objects that arrive at\n\n> Such messages\n\nThese objects\n\n> cannot omit Objects that exist at the original pulbsher\n\nThey can, using the Unknown encodings in FETCH.  Also typo \u201cpublisher\u201d\n\n> entirely\n\nentirety\n\nSection 3\n\n> A value of zero indicates it would like to receive the entire current group; \n\nYou should mention that the subscription filter has an argument and that\u2019s the \u201cvalue\u201d you are talking about.\n\n> If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not available, it MAY also send a Joining FETCH message.\n\nDoes it get both in that case?  I will read on.  Ah, I found it:\n\n> Groups serviced via the Rewind filter are not delivered by any Joining FETCH associated with this SUBSCRIBE\n\nMaybe add a \u201cdescribed below\u201d to the first bit.\n\n> REWIND_GROUPS is an integer that indicates the number of Groups before the LargestObject parameter that will be served via SUBSCRIBE\n\nMention that it is capped at the value in the rewind filter.\n\n> any Joining FETCH associated with this SUBSCRIBE,\n\nWe now allow more than one joining FETCH per subscribe.  I think you can make this clear by referencing the \u201cJoining Location\u201d - e.g. Issuing a rewind advances the joining location to \u2026\n> the EndLocation reported in FETCH_OK is the highest Group ID outside the Rewind range.\n\nIs it {Group ID, 0} exclusive?\n\nSection 4\n\n> If the SUBSCRIBE message includes the FORWARD parameter with value 1, the publisher MUST NOT send the REWIND_GROUPS parameter in SUBSCRIBE_OK.\n\nHuh?  Do you mean Forward=0?\n\n> The DELIVERY_TIMEOUT parameters for the SUBSCRIBE indicate the Group can still be sent.\n\nMight be good to spell this out in more detail, like the object was cached less than DELIVERY_TIMEOUT ms ago.  Also mention it can\u2019t have exceeded MAX_CACHE_DURATION?\n\n> The publisher is not required to verify that it has all objects in the Group to include it in Rewind Groups range. In particular, Groups delivered via SUBSCRIBE might be missing objects and are still eligible for Rewind.\n\nI think we need to be a little more strict here.  At least you need to observe the rule that you have \u201csubgroup integrity\u201d - e.g. if the cache has object 0 and 2, both in subgroup 0, it can\u2019t serve them both in one stream unless it knows there is not also object 1 in that subgroup. [Ah, I see you have text, however, it might be better to reference the rules we already have].\n\nBut I also think the implicit assumption \u201cthe subscriber is getting what they would have gotten if subscribed earlier\u201d is incomplete.  There could be some objects in cache, not others, because all previous subscribers disappeared mid group, or subscribed with different filters, etc.  I would think you need some notion of completeness at the relay to confidently do this, but perhaps subscribers don\u2019t really care.\n\n>  It MAY simply omit the stream with higher object IDs.\n\nThat seems not great.  This is even less \u201cgetting what they would have gotten if subscribed earlier\u201d.\n\n\n> The publisher MUST NOT send Rewind Groups > 0 if it knows it is servicing a track with Group IDs that are not strictly increasing.\n\nHow is a relay supposed to know that?\n\n> for (object : cache.group[group_id]) {\n\nWell a linear scan of objects in each group seems suboptimal.  One of my sadnesses with this proposal is that I really need to organize my cache both by object ID (for FETCH) and by subgroup ID (for REWIND).\n\nI\u2019m having a little trouble grokking the psuedocode but I can come back to it.  In general, your code is simple because you aren\u2019t handling the gap detection - you allow rewinding to a group even if there\u2019s only a single object there, as long as it\u2019s the first in a subgroup.  It\u2019s not always obvious when an object is the first in a subgroup.  You can tell when populated via FETCH, but via SUBSCRIBE when there\u2019s more than one subgroup per group, there are challenging scenarios - any subgroup that was in the \u201ccurrent\u201d group of an upstream subscribe may not start at the beginning, even if you did rewind upstream.\n",
+      "createdAt": "2026-03-03T22:59:08Z",
+      "updatedAt": "2026-03-03T22:59:08Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": [
     {
       "number": 1,
