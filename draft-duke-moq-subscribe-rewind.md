@@ -59,7 +59,7 @@ subscriber to not be sent or retransmitted without blocking later Objects.
 
 Subscribers can also send FETCH messages to retrieve Objects from the past. The
 requested Object range is delivered on a single stream. A relay might omit
-certain objects if they are not available in cache, but these are delivered 
+certain objects if they are not available in cache, but these are delivered
 without regard for the dependencies represented by Subgroups.
 If the entirety of the Object range is not in cache, a relay will
 have to issue its own FETCH upstream to satisfy the subscriber.
