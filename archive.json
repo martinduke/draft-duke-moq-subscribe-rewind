@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-15T03:21:46.169342+00:00",
+  "timestamp": "2026-03-24T02:47:29.412785+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -216,7 +216,7 @@
       "labels": [],
       "body": "Thanks for the review. Here's a few of the early changes, one of which might be spicy. More to come.",
       "createdAt": "2026-03-12T18:30:18Z",
-      "updatedAt": "2026-03-12T18:31:36Z",
+      "updatedAt": "2026-03-22T19:25:53Z",
       "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "baseRefName": "main",
       "baseRefOid": "ef4dcdc3350916a0a3a4863c12cf834d165606b0",
@@ -246,6 +246,26 @@
               "body": "````suggestion\ncertain objects if they are not available in cache, but these are delivered\n````",
               "createdAt": "2026-03-12T18:30:48Z",
               "updatedAt": "2026-03-12T18:30:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORQiQJ87tu6G7",
+          "commit": {
+            "abbreviatedOid": "e14765e"
+          },
+          "author": "afrind",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-22T19:25:53Z",
+          "updatedAt": "2026-03-22T19:25:53Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "This does seem spicy.  How would the subscriber even know?",
+              "createdAt": "2026-03-22T19:25:53Z",
+              "updatedAt": "2026-03-22T19:25:53Z"
             }
           ]
         }
