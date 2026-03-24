@@ -104,7 +104,7 @@ do not increment by one.
 
 A subscriber sends a SUBSCRIBE message and can include a Rewind Subscription
 Filter instead of some other Subscription filter type. The filter contains a
-single argument. A value of zero
+single argument. If this argument has a value of zero, it
 indicates it would like to receive the entire current group; a larger value
 indicates it would also like to receive the most recent complete groups as well.
 
@@ -116,21 +116,23 @@ Upon receipt of a Rewind filter, the publisher MAY treat it as a Largest Object
 filter. It will typically do so if the track is not in cache. If it does not
 do so, it sends a REWIND_GROUPS parameter in the SUBSCRIBE_OK. REWIND_GROUPS
 is an integer that indicates the number of Groups before the LargestObject
-parameter that will be served via SUBSCRIBE.
+parameter that will be served via SUBSCRIBE, which will not be greater than the
+value in the Rewind filter.
 
 Groups included in the Rewind Groups range will be delivered using SUBSCRIBE
 semantics: datagrams or Subgroup streams, subject to the delivery timeout
-and group order specified in the SUBSCRIBE negotiation. Groups serviced via
-the Rewind filter are not delivered by any Joining FETCH associated with this
-SUBSCRIBE, though they can be delivered by Standalone FETCH messages. In some
+and group order specified in the SUBSCRIBE negotiation. For any Joining
+FETCH(es) associated with this SUBSCRIBE, the Joining Location will be revised
+to an Object prior to the groups serviced via Rewind. In some
 cases, this means the Joining FETCH delivers an empty range.
 
 If the Joining FETCH range exceeds the Rewind range, the EndLocation reported
-in FETCH_OK is the highest Group ID outside the Rewind range.
+in FETCH_OK is the highest Group ID outside the Rewind range, which is expressed
+as Location {Rewind.Lowest_Group - 1, 0}.
 
 # Publisher restrictions
 
-If the SUBSCRIBE message includes the FORWARD parameter with value 1, the
+If the SUBSCRIBE message includes the FORWARD parameter with value 0, the
 publisher MUST NOT send the REWIND_GROUPS parameter in SUBSCRIBE_OK.
 
 The publisher MUST NOT include a Group in a range defined by Rewind Groups
@@ -142,7 +144,11 @@ unless:
 known to constitute the beginning of a Subgroup;
 
 * The DELIVERY_TIMEOUT parameters for the SUBSCRIBE indicate the Group can
-still be sent.
+still be sent (the Object was cached within the minimum of the two parameters),
+and
+
+* The MAX_CACHE_DURATION property for the track indicates the Group can still be
+sent.
 
 The publisher is not required to verify that it has all objects in the Group to
 include it in Rewind Groups range. In particular, Groups delivered via SUBSCRIBE
@@ -179,8 +185,8 @@ The following pseudocode illustrates this logic:
 
 ~~~
 bool HasObjectInGroup(group_id) {
-  for (object : cache.group[group_id]) {
-    if (object.IsFirstInSubgroup()) {
+  for (subgroup : cache.group[group_id].subgroups) {
+    if (subgroup.HasFirstObject()) {
       return true
     }
   }
@@ -225,6 +231,21 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
     if (subscriber.HasRewindGroupsFilter() {
       SetRewindGroupsParameter(min(groups_to_rewind, subscriber.rewind_groups))
     }
+  }
+}
+
+// Assemble the queue of objects to send.
+void AssembleDataForTransmit(start_group, end_group) {
+  for (group = start_group; group <= end_group; ++group) {
+     for (subgroup : group.subgroups) {
+       // The subgroup data structure implies that objects are in order. If 
+       // delivered over two streams, there will be two separate data
+       // structures.
+       OpenStreamForSubgroup(subgroup)
+       for (object : subgroup.objects) {
+	 Send(object)
+       }
+     }
   }
 }
 ~~~
