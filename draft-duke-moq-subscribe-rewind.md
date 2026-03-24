@@ -238,7 +238,7 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
 void AssembleDataForTransmit(start_group, end_group) {
   for (group = start_group; group <= end_group; ++group) {
      for (subgroup : group.subgroups) {
-       // The subgroup data structure implies that objects are in order. If 
+       // The subgroup data structure implies that objects are in order. If
        // delivered over two streams, there will be two separate data
        // structures.
        OpenStreamForSubgroup(subgroup)
