@@ -51,17 +51,18 @@ into Groups, which serve as join points, and Subgroups, that imply dependency
 between Objects and serve as the units to be fed into QUIC or Webtransport
 streams.
 
-Subscribers can send SUBSCRIBE messages to receive messages that arrive at, or
-are created by, the publisher in the future. Such messages are delivered either
+Subscribers can send SUBSCRIBE messages to receive objects that arrive at, or
+are created by, the publisher in the future. These objects are delivered either
 one stream per Subgroup, or in QUIC Datagrams, as dictated by the original
 publisher. The stream mapping allows Objects that are no longer of use to the
 subscriber to not be sent or retransmitted without blocking later Objects.
 
 Subscribers can also send FETCH messages to retrieve Objects from the past. The
-requested Object range is delivered on a single stream and cannot omit Objects
-that exist at the original pulbsher. If the entirely of the Object range is not
-in cache, a relay will have to issue its own FETCH upstream to satisfy the
-subscriber.
+requested Object range is delivered on a single stream. A relay might omit
+certain objects if they are not available in cache, but these are delivered
+without regard for the dependencies represented by Subgroups.
+If the entirety of the Object range is not in cache, a relay will
+have to issue its own FETCH upstream to satisfy the subscriber.
 
 Because the subscriber may not know the live edge at request time, a variant of
 FETCH known as "Joining FETCH" instructs the publisher to use the current live
@@ -102,13 +103,14 @@ behind on delivery. Other heuristics are also possible, especially if Group IDs
 do not increment by one.
 
 A subscriber sends a SUBSCRIBE message and can include a Rewind Subscription
-Filter instead of some other Subscription filter type. A value of zero
+Filter instead of some other Subscription filter type. The filter contains a
+single argument. A value of zero
 indicates it would like to receive the entire current group; a larger value
 indicates it would also like to receive the most recent complete groups as well.
 
 If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not
-available, it MAY also send a Joining FETCH message. The object range MAY be
-larger or smaller than specified in the Rewind filter.
+available, it MAY also send a Joining FETCH message, as described below. The
+object range MAY be larger or smaller than specified in the Rewind filter.
 
 Upon receipt of a Rewind filter, the publisher MAY treat it as a Largest Object
 filter. It will typically do so if the track is not in cache. If it does not
