@@ -4,8 +4,8 @@
 
 Media Over QUIC                                                  M. Duke
 Internet-Draft                                                    Google
-Intended status: Standards Track                        24 February 2026
-Expires: 28 August 2026
+Intended status: Standards Track                           24 March 2026
+Expires: 25 September 2026
 
 
                      The Rewind Subscription Filter
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 August 2026.
+   This Internet-Draft will expire on 25 September 2026.
 
 Copyright Notice
 
@@ -95,18 +95,20 @@ Table of Contents
    that imply dependency between Objects and serve as the units to be
    fed into QUIC or Webtransport streams.
 
-   Subscribers can send SUBSCRIBE messages to receive messages that
-   arrive at, or are created by, the publisher in the future.  Such
-   messages are delivered either one stream per Subgroup, or in QUIC
+   Subscribers can send SUBSCRIBE messages to receive objects that
+   arrive at, or are created by, the publisher in the future.  These
+   objects are delivered either one stream per Subgroup, or in QUIC
    Datagrams, as dictated by the original publisher.  The stream mapping
    allows Objects that are no longer of use to the subscriber to not be
    sent or retransmitted without blocking later Objects.
 
    Subscribers can also send FETCH messages to retrieve Objects from the
-   past.  The requested Object range is delivered on a single stream and
-   cannot omit Objects that exist at the original pulbsher.  If the
-   entirely of the Object range is not in cache, a relay will have to
-   issue its own FETCH upstream to satisfy the subscriber.
+   past.  The requested Object range is delivered on a single stream.  A
+   relay might omit certain objects if they are not available in cache,
+   but these are delivered without regard for the dependencies
+   represented by Subgroups.  If the entirety of the Object range is not
+   in cache, a relay will have to issue its own FETCH upstream to
+   satisfy the subscriber.
 
    Because the subscriber may not know the live edge at request time, a
    variant of FETCH known as "Joining FETCH" instructs the publisher to
@@ -156,14 +158,15 @@ Table of Contents
 
    A subscriber sends a SUBSCRIBE message and can include a Rewind
    Subscription Filter instead of some other Subscription filter type.
-   A value of zero indicates it would like to receive the entire current
-   group; a larger value indicates it would also like to receive the
-   most recent complete groups as well.
+   The filter contains a single argument.  A value of zero indicates it
+   would like to receive the entire current group; a larger value
+   indicates it would also like to receive the most recent complete
+   groups as well.
 
    If the subscriber wants the Groups even if SUBSCRIBE delivery
    semantics are not available, it MAY also send a Joining FETCH
-   message.  The object range MAY be larger or smaller than specified in
-   the Rewind filter.
+   message, as described below.  The object range MAY be larger or
+   smaller than specified in the Rewind filter.
 
    Upon receipt of a Rewind filter, the publisher MAY treat it as a
    Largest Object filter.  It will typically do so if the track is not
@@ -358,9 +361,9 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
 
    [MOQT]     Nandakumar, S., Vasiliev, V., Swett, I., and A. Frindell,
               "Media over QUIC Transport", Work in Progress, Internet-
-              Draft, draft-ietf-moq-transport-16, 13 January 2026,
+              Draft, draft-ietf-moq-transport-17, 2 March 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-moq-
-              transport-16>.
+              transport-17>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
