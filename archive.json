@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-24T02:47:29.412785+00:00",
+  "timestamp": "2026-03-26T03:17:20.240065+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -55,14 +55,38 @@
       "id": "I_kwDORQiQJ87vjuVy",
       "title": "afrind review",
       "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/3",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "afrind",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "Section 1\n\n> Subscribers can send SUBSCRIBE messages to receive messages that arrive at\n\nSubscribers can send SUBSCRIBE messages to receive objects that arrive at\n\n> Such messages\n\nThese objects\n\n> cannot omit Objects that exist at the original pulbsher\n\nThey can, using the Unknown encodings in FETCH.  Also typo \u201cpublisher\u201d\n\n> entirely\n\nentirety\n\nSection 3\n\n> A value of zero indicates it would like to receive the entire current group; \n\nYou should mention that the subscription filter has an argument and that\u2019s the \u201cvalue\u201d you are talking about.\n\n> If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not available, it MAY also send a Joining FETCH message.\n\nDoes it get both in that case?  I will read on.  Ah, I found it:\n\n> Groups serviced via the Rewind filter are not delivered by any Joining FETCH associated with this SUBSCRIBE\n\nMaybe add a \u201cdescribed below\u201d to the first bit.\n\n> REWIND_GROUPS is an integer that indicates the number of Groups before the LargestObject parameter that will be served via SUBSCRIBE\n\nMention that it is capped at the value in the rewind filter.\n\n> any Joining FETCH associated with this SUBSCRIBE,\n\nWe now allow more than one joining FETCH per subscribe.  I think you can make this clear by referencing the \u201cJoining Location\u201d - e.g. Issuing a rewind advances the joining location to \u2026\n> the EndLocation reported in FETCH_OK is the highest Group ID outside the Rewind range.\n\nIs it {Group ID, 0} exclusive?\n\nSection 4\n\n> If the SUBSCRIBE message includes the FORWARD parameter with value 1, the publisher MUST NOT send the REWIND_GROUPS parameter in SUBSCRIBE_OK.\n\nHuh?  Do you mean Forward=0?\n\n> The DELIVERY_TIMEOUT parameters for the SUBSCRIBE indicate the Group can still be sent.\n\nMight be good to spell this out in more detail, like the object was cached less than DELIVERY_TIMEOUT ms ago.  Also mention it can\u2019t have exceeded MAX_CACHE_DURATION?\n\n> The publisher is not required to verify that it has all objects in the Group to include it in Rewind Groups range. In particular, Groups delivered via SUBSCRIBE might be missing objects and are still eligible for Rewind.\n\nI think we need to be a little more strict here.  At least you need to observe the rule that you have \u201csubgroup integrity\u201d - e.g. if the cache has object 0 and 2, both in subgroup 0, it can\u2019t serve them both in one stream unless it knows there is not also object 1 in that subgroup. [Ah, I see you have text, however, it might be better to reference the rules we already have].\n\nBut I also think the implicit assumption \u201cthe subscriber is getting what they would have gotten if subscribed earlier\u201d is incomplete.  There could be some objects in cache, not others, because all previous subscribers disappeared mid group, or subscribed with different filters, etc.  I would think you need some notion of completeness at the relay to confidently do this, but perhaps subscribers don\u2019t really care.\n\n>  It MAY simply omit the stream with higher object IDs.\n\nThat seems not great.  This is even less \u201cgetting what they would have gotten if subscribed earlier\u201d.\n\n\n> The publisher MUST NOT send Rewind Groups > 0 if it knows it is servicing a track with Group IDs that are not strictly increasing.\n\nHow is a relay supposed to know that?\n\n> for (object : cache.group[group_id]) {\n\nWell a linear scan of objects in each group seems suboptimal.  One of my sadnesses with this proposal is that I really need to organize my cache both by object ID (for FETCH) and by subgroup ID (for REWIND).\n\nI\u2019m having a little trouble grokking the psuedocode but I can come back to it.  In general, your code is simple because you aren\u2019t handling the gap detection - you allow rewinding to a group even if there\u2019s only a single object there, as long as it\u2019s the first in a subgroup.  It\u2019s not always obvious when an object is the first in a subgroup.  You can tell when populated via FETCH, but via SUBSCRIBE when there\u2019s more than one subgroup per group, there are challenging scenarios - any subgroup that was in the \u201ccurrent\u201d group of an upstream subscribe may not start at the beginning, even if you did rewind upstream.\n",
       "createdAt": "2026-03-03T22:59:08Z",
-      "updatedAt": "2026-03-03T22:59:08Z",
+      "updatedAt": "2026-03-24T22:11:43Z",
+      "closedAt": "2026-03-24T22:11:43Z",
+      "comments": [
+        {
+          "author": "martinduke",
+          "authorAssociation": "OWNER",
+          "body": "<snip, many suggestions taken>\n\n> > The publisher is not required to verify that it has all objects in the Group to include it in Rewind Groups range. In particular, Groups delivered via SUBSCRIBE might be missing objects and are still eligible for Rewind.\n> \n> I think we need to be a little more strict here. At least you need to observe the rule that you have \u201csubgroup integrity\u201d - e.g. if the cache has object 0 and 2, both in subgroup 0, it can\u2019t serve them both in one stream unless it knows there is not also object 1 in that subgroup. [Ah, I see you have text, however, it might be better to reference the rules we already have].\n> \n> But I also think the implicit assumption \u201cthe subscriber is getting what they would have gotten if subscribed earlier\u201d is incomplete. There could be some objects in cache, not others, because all previous subscribers disappeared mid group, or subscribed with different filters, etc. I would think you need some notion of completeness at the relay to confidently do this, but perhaps subscribers don\u2019t really care.\n> \n\nThe implicit assumption is something we discussed verbally, but is not in the text. IMO the paragraph about not being able to account for object IDs in a subgroup is clear and restrictive. How would you reword this?\n\n> > It MAY simply omit the stream with higher object IDs.\n> \n> That seems not great. This is even less \u201cgetting what they would have gotten if subscribed earlier\u201d.\n\nWhat alternative is there? Again, this principle you're articulating is not in the draft?\n\n> \n> > The publisher MUST NOT send Rewind Groups > 0 if it knows it is servicing a track with Group IDs that are not strictly increasing.\n> \n> How is a relay supposed to know that?\n\nHow does it know not to serve FETCH in this case? I think we should have a track property.\n\n> \n> > for (object : cache.group[group_id]) {\n> \n> Well a linear scan of objects in each group seems suboptimal. One of my sadnesses with this proposal is that I really need to organize my cache both by object ID (for FETCH) and by subgroup ID (for REWIND).\n> \n> I\u2019m having a little trouble grokking the psuedocode but I can come back to it. In general, your code is simple because you aren\u2019t handling the gap detection - you allow rewinding to a group even if there\u2019s only a single object there, as long as it\u2019s the first in a subgroup. It\u2019s not always obvious when an object is the first in a subgroup. You can tell when populated via FETCH, but via SUBSCRIBE when there\u2019s more than one subgroup per group, there are challenging scenarios - any subgroup that was in the \u201ccurrent\u201d group of an upstream subscribe may not start at the beginning, even if you did rewind upstream.\n\nOK, this is control plane code but I can add data plane\n",
+          "createdAt": "2026-03-24T20:27:33Z",
+          "updatedAt": "2026-03-24T20:27:33Z"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "id": "I_kwDORQiQJ872PGcJ",
+      "title": "MAX_REWIND is not actually useful",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/7",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Because this is structured as an extension, there has to be a Setup Option. Because there's an option, I figured it might as well be an integer instead of a boolean.\n\nUnfortunately, this integer isn't very useful.\n\nIn the value is zero, that's actually useful. If Group IDs aren't sequential, or the value depends on the footprint of each Group, a single session-wide value doesn't tell you much. It's just another error condition and test case.\n\nChange it back to a boolean. If the subscriber requests a silly value, it's going to get truncated anyway.",
+      "createdAt": "2026-03-24T22:52:57Z",
+      "updatedAt": "2026-03-24T22:52:57Z",
       "closedAt": null,
       "comments": []
     }
@@ -209,24 +233,26 @@
       "id": "PR_kwDORQiQJ87KIS_O",
       "title": "First chunk of afrind comments",
       "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/4",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Thanks for the review. Here's a few of the early changes, one of which might be spicy. More to come.",
       "createdAt": "2026-03-12T18:30:18Z",
-      "updatedAt": "2026-03-22T19:25:53Z",
+      "updatedAt": "2026-03-24T19:16:43Z",
       "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "baseRefName": "main",
       "baseRefOid": "ef4dcdc3350916a0a3a4863c12cf834d165606b0",
       "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "headRefName": "afrind",
       "headRefOid": "e14765e4126ed3afe406babd95574ca386edf1db",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-03-24T18:34:02Z",
+      "mergedAt": "2026-03-24T18:34:01Z",
+      "mergedBy": "martinduke",
+      "mergeCommit": {
+        "oid": "3c6edb467b2a6c4d282396316531399d2ccef5ff"
+      },
       "comments": [],
       "reviews": [
         {
@@ -235,7 +261,7 @@
             "abbreviatedOid": "13eb03f"
           },
           "author": "github-actions",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2026-03-12T18:30:48Z",
@@ -266,6 +292,188 @@
               "body": "This does seem spicy.  How would the subscriber even know?",
               "createdAt": "2026-03-22T19:25:53Z",
               "updatedAt": "2026-03-22T19:25:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORQiQJ87ugTYN",
+          "commit": {
+            "abbreviatedOid": "e14765e"
+          },
+          "author": "martinduke",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-24T18:33:44Z",
+          "updatedAt": "2026-03-24T18:33:44Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "I take this as a comment rather than a request for a change.",
+              "createdAt": "2026-03-24T18:33:44Z",
+              "updatedAt": "2026-03-24T18:33:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORQiQJ87uhXQO",
+          "commit": {
+            "abbreviatedOid": "e14765e"
+          },
+          "author": "afrind",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-24T19:16:43Z",
+          "updatedAt": "2026-03-24T19:16:43Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "Well, I just don't totally understand the implication therein or how it's going to work.  But it's your draft so do what you like :) ",
+              "createdAt": "2026-03-24T19:16:43Z",
+              "updatedAt": "2026-03-24T19:16:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "id": "PR_kwDORQiQJ87NJf0B",
+      "title": "alan fixes",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/5",
+      "state": "MERGED",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes the rest of #3",
+      "createdAt": "2026-03-24T22:07:16Z",
+      "updatedAt": "2026-03-24T22:37:02Z",
+      "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "baseRefName": "main",
+      "baseRefOid": "3c6edb467b2a6c4d282396316531399d2ccef5ff",
+      "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "headRefName": "afrind",
+      "headRefOid": "67d2ffa53c5f135904f24ee2c8bbb5d8c27b76a4",
+      "closedAt": "2026-03-24T22:11:22Z",
+      "mergedAt": "2026-03-24T22:11:22Z",
+      "mergedBy": "martinduke",
+      "mergeCommit": {
+        "oid": "d1a02038e03c7a3df30ee34f4b731fd4800cec5f"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORQiQJ87ukq-k",
+          "commit": {
+            "abbreviatedOid": "5fb7948"
+          },
+          "author": "github-actions",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-24T22:07:46Z",
+          "updatedAt": "2026-03-24T22:07:46Z",
+          "comments": [
+            {
+              "originalPosition": 72,
+              "body": "````suggestion\n       // The subgroup data structure implies that objects are in order. If\n````",
+              "createdAt": "2026-03-24T22:07:46Z",
+              "updatedAt": "2026-03-24T22:07:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORQiQJ87ulZ3Y",
+          "commit": {
+            "abbreviatedOid": "67d2ffa"
+          },
+          "author": "afrind",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-24T22:34:55Z",
+          "updatedAt": "2026-03-24T22:37:02Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "MUST NOT?",
+              "createdAt": "2026-03-24T22:34:56Z",
+              "updatedAt": "2026-03-24T22:37:02Z"
+            },
+            {
+              "originalPosition": 24,
+              "body": "Do you mean rewind_group - 1, maxint?",
+              "createdAt": "2026-03-24T22:35:40Z",
+              "updatedAt": "2026-03-24T22:37:02Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "id": "PR_kwDORQiQJ87NJ2GP",
+      "title": "action items from meeting",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/6",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "I think this covers what we discussed today",
+      "createdAt": "2026-03-24T22:32:40Z",
+      "updatedAt": "2026-03-24T22:44:24Z",
+      "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "baseRefName": "main",
+      "baseRefOid": "d1a02038e03c7a3df30ee34f4b731fd4800cec5f",
+      "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "headRefName": "clarify",
+      "headRefOid": "8026b181b222dd7325c9c5c49306f2eeeabbfa5e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORQiQJ87ulkLk",
+          "commit": {
+            "abbreviatedOid": "8026b18"
+          },
+          "author": "afrind",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-24T22:41:25Z",
+          "updatedAt": "2026-03-24T22:41:25Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "It can block some objects in cache, that might eventually be deliverable, but weren't before the gaps were filled.\r\n\r\ne.g.\r\n\r\ncache has sg=0, objects: 0, 10; gaps: 1-9, 11-max\r\n\r\nWith a FETCH it determines that objects 1-9 are in on other subgroups or don't exist --> it can send 0,10 in the same stream.",
+              "createdAt": "2026-03-24T22:41:25Z",
+              "updatedAt": "2026-03-24T22:41:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORQiQJ87ulpTv",
+          "commit": {
+            "abbreviatedOid": "8026b18"
+          },
+          "author": "martinduke",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-24T22:44:24Z",
+          "updatedAt": "2026-03-24T22:44:24Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "right, they are not deliverable at the moment the fetch is issued\r\n",
+              "createdAt": "2026-03-24T22:44:24Z",
+              "updatedAt": "2026-03-24T22:44:25Z"
             }
           ]
         }
