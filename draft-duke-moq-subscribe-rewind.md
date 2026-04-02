@@ -112,7 +112,7 @@ If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not
 available, it MAY also send a Joining FETCH message, as described below. The
 object range MAY be larger or smaller than specified in the Rewind filter.
 
-Upon receipt of a Rewind filter, the publisher MAY treat it as a Largest Object
+Upon receipt of a Rewind filter, the publisher MAY treat it as a Next Group
 filter. It will typically do so if the track is not in cache. If it does not
 do so, it sends a REWIND_GROUPS parameter in the SUBSCRIBE_OK. REWIND_GROUPS
 is an integer that indicates the number of Groups before the LargestObject
@@ -129,6 +129,11 @@ cases, this means the Joining FETCH delivers an empty range.
 If the Joining FETCH range exceeds the Rewind range, the EndLocation reported
 in FETCH_OK is the highest Group ID outside the Rewind range, which is expressed
 as Location {Rewind.Lowest_Group - 1, 0}.
+
+Note that if the original publisher does not publish Groups with monotonically
+increasing Group IDs, REWIND filters with values greater than zero will have
+unpredictable results; like FETCH requests that request more than one group,
+subscribers SHOULD NOT issue these requests.
 
 # Publisher restrictions
 
@@ -164,8 +169,15 @@ Subgroup from upstream, and cannot account for all object IDs between the end
 of one and the beginning of another, it MUST NOT deliver them on the same
 stream. It MAY simply omit the stream with higher object IDs.
 
-The publisher MUST NOT send Rewind Groups > 0 if it knows it is servicing a track
-with Group IDs that are not strictly increasing.
+A simple way to implement a relay that supports Rewind is to begin with the
+first full group in active subscription (i.e. where the subscription did not
+start mid-Group).
+
+However, a relay MAY use data from previous subscriptions to the track,
+but must take care to avoid incorrectly implying Subgroup continuity, as
+described above. Furthermore, a relay MAY use FETCH to retrieve missing objects
+and deliver them via subgroup streams and datagrams, since this will not block
+objects that are already deliverable from cache.
 
 ## Relays with No Existing Upstream Subscription
 
@@ -237,6 +249,9 @@ void OnRewindGroupsParameterAtRelay(groups_to_rewind, largest_group) {
 // Assemble the queue of objects to send.
 void AssembleDataForTransmit(start_group, end_group) {
   for (group = start_group; group <= end_group; ++group) {
+     for (datagram : group.datagrams) {
+       Send(datagram)
+     }
      for (subgroup : group.subgroups) {
        // The subgroup data structure implies that objects are in order. If
        // delivered over two streams, there will be two separate data
