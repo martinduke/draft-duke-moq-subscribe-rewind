@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-26T03:17:20.240065+00:00",
+  "timestamp": "2026-04-05T03:27:33.063569+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -417,24 +417,26 @@
       "id": "PR_kwDORQiQJ87NJ2GP",
       "title": "action items from meeting",
       "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/6",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "martinduke",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "I think this covers what we discussed today",
       "createdAt": "2026-03-24T22:32:40Z",
-      "updatedAt": "2026-03-24T22:44:24Z",
+      "updatedAt": "2026-04-02T23:18:16Z",
       "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "baseRefName": "main",
       "baseRefOid": "d1a02038e03c7a3df30ee34f4b731fd4800cec5f",
       "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
       "headRefName": "clarify",
       "headRefOid": "8026b181b222dd7325c9c5c49306f2eeeabbfa5e",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-04-02T23:18:16Z",
+      "mergedAt": "2026-04-02T23:18:16Z",
+      "mergedBy": "martinduke",
+      "mergeCommit": {
+        "oid": "1540630be1c73708bed8746f7e79a88dce662b21"
+      },
       "comments": [],
       "reviews": [
         {
