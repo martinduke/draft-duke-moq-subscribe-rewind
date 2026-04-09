@@ -112,7 +112,7 @@ If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not
 available, it MAY also send a Joining FETCH message, as described below. The
 object range MAY be larger or smaller than specified in the Rewind filter.
 
-Upon receipt of a Rewind filter, the publisher MAY treat it as a Next Group
+Upon receipt of a Rewind filter, the publisher MAY treat it as a Latest Object
 filter. It will typically do so if the track is not in cache. If it does not
 do so, it sends a REWIND_GROUPS parameter in the SUBSCRIBE_OK. REWIND_GROUPS
 is an integer that indicates the number of Groups before the LargestObject
