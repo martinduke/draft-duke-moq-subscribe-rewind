@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-04-05T03:27:33.063569+00:00",
+  "timestamp": "2026-04-12T03:34:45.502321+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -87,6 +87,102 @@
       "body": "Because this is structured as an extension, there has to be a Setup Option. Because there's an option, I figured it might as well be an integer instead of a boolean.\n\nUnfortunately, this integer isn't very useful.\n\nIn the value is zero, that's actually useful. If Group IDs aren't sequential, or the value depends on the footprint of each Group, a single session-wide value doesn't tell you much. It's just another error condition and test case.\n\nChange it back to a boolean. If the subscriber requests a silly value, it's going to get truncated anyway.",
       "createdAt": "2026-03-24T22:52:57Z",
       "updatedAt": "2026-03-24T22:52:57Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 8,
+      "id": "I_kwDORQiQJ878TDoU",
+      "title": "Failing to NextGroupStart breaks joining FETCH",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/8",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "If the subscriber only wants whole groups, it makes sense to fail over to NextGroupStart. But that breaks a backup Joining FETCH; there is no way to retrieve objects between LargestObject and the next group if Rewind is rejected.\n\nWe either have to revert to LargestObject (and the unneeded streams can be reset) or do something hacky with FETCH.",
+      "createdAt": "2026-04-09T14:12:57Z",
+      "updatedAt": "2026-04-09T14:12:57Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDORQiQJ878Y782",
+      "title": "how does this work with PUBLISH?",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/10",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Option 1: this filter type cannot be in PUBLISH_OK, since there's no way for the publisher to respond.\n\nOption 2: the publisher can offered REWIND_GROUPS in PUBLISH, and the subscriber can shrink it in PUBLISH_OK.",
+      "createdAt": "2026-04-09T19:12:55Z",
+      "updatedAt": "2026-04-09T19:12:55Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 11,
+      "id": "I_kwDORQiQJ878s6qp",
+      "title": "Client complexity when combining Rewind SUBSCRIBE with Joining FETCH",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/11",
+      "state": "OPEN",
+      "author": "thexeos",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Reconciling a Rewind SUBSCRIBE with a concurrent Joining FETCH adds significant state machine complexity.\n\nThe client has to speculatively issue a FETCH without knowing how much of its range will be made redundant by the rewind, then react to the REWIND_GROUPS parameter in SUBSCRIBE_OK by adjusting its internal bookkeeping of which groups it expects from which delivery path.\n\nSome guidance or a recommended client-side approach (e.g., waiting for SUBSCRIBE_OK before issuing the FETCH, or preferred ordering) would help avoid subtle bugs here.",
+      "createdAt": "2026-04-10T13:58:47Z",
+      "updatedAt": "2026-04-10T13:58:47Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 12,
+      "id": "I_kwDORQiQJ878tFfC",
+      "title": "Potential race between FETCH data delivery and SUBSCRIBE_OK revealing the rewind range",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/12",
+      "state": "OPEN",
+      "author": "thexeos",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The draft requires the subscriber to close the session if the FETCH and rewind ranges overlap. However, from the client side, FETCH data can start arriving before SUBSCRIBE_OK is received, meaning the client may already be processing FETCH objects that later turn out to fall within the rewind range.\n\nAt that point, the client's only option is a session teardown, which feels harsh for what is essentially a timing issue rather than a protocol violation by either side. \n\nIs there a recommended way to sequence these messages to avoid this, or should the overlap check be relaxed to handle this window gracefully?\n",
+      "createdAt": "2026-04-10T14:06:35Z",
+      "updatedAt": "2026-04-10T14:06:35Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 13,
+      "id": "I_kwDORQiQJ878tRMi",
+      "title": "No signal to the subscriber about which objects are missing in a rewound group",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/13",
+      "state": "OPEN",
+      "author": "thexeos",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Draft explicitly allows publishers to include groups in the rewind range even when some objects are missing. From the subscriber's perspective, this means a rewound group can arrive with gaps and no indication of whether those gaps are \"object was never produced,\" \"object was evicted from cache,\" or \"object is still in transit.\" This makes it harder for the client to make correct rendering or decoding decisions, especially for video codecs where missing dependencies affect whether later objects (frames) are usable.\n\nThis is distinct from but related to #8, which addresses the failure path where Rewind is rejected and the NextGroupStart fallback creates unreachable gaps. This issue concerns the success path: Rewind is accepted, but the delivered groups may be silently incomplete. Together they point to a broader theme of the client lacking sufficient information about incomplete data during the join flow.\n\nWould it be worth recommending that publishers signal incomplete groups somehow, or at least documenting what clients should assume when objects are absent from a rewound group?",
+      "createdAt": "2026-04-10T14:15:08Z",
+      "updatedAt": "2026-04-10T14:15:08Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 14,
+      "id": "I_kwDORQiQJ878u45p",
+      "title": "Extend rewind to support relative and absolute fill",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/issues/14",
+      "state": "OPEN",
+      "author": "wilaw",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "OTT players need a reliable mechanism for joining a live stream. Typically they want 1-3 groups behind live.  The rewind draft currently indicates\n\n> If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not available, it MAY also send a Joining FETCH message, as described below.\n\nSince the client cannot know ahead of a time if the Groups they need to start are available in the cache, sending a Joining FETCH then is a de facto MUST for a client which needs reliability.\n\nInstead of having the client have to two send messages to join, can we extend Rewind to implement the behavior described in https://afrind.github.io/draft-frindell-moq-join-filters/draft-frindell-moq-join-filters.html. \n\nThat document defines two new MOQT Subscription Filters -- Join Relative Group and Join Absolute Group -- that enable a subscriber to receive both historical and live content on a single subscription. Unlike Joining FETCH, which delivers past objects on a single stream with head-of-line blocking, Join filters deliver historical content using SUBSCRIBE semantics: per-subgroup streams, subject to delivery timeout, priorities, and datagram forwarding preferences. The publisher uses a combination of cache and upstream FETCH to assemble complete groups for delivery.\n\nJoin Relative Group is identical to Rewind filter in syntax. \n\nTo modify Rewind proposal to support the features of both Join Relative Group and Join Absolute , we would only need to add a byte flag with 3 states\n0 - no fill, just give me what you have in cache\n1 - use the Rewind Groups attribute as an absolute Group ID\n2 - use the Rewind Groups attribute as a relative offset\n\nThis would give a clean and consistent interface for clients joining the stream and avoid the need for the client to have to make a parallel joining FETCH. In fact, this would allow us to remove Joining FETCH as a message. ",
+      "createdAt": "2026-04-10T15:35:50Z",
+      "updatedAt": "2026-04-10T15:35:50Z",
       "closedAt": null,
       "comments": []
     }
@@ -480,6 +576,32 @@
           ]
         }
       ]
+    },
+    {
+      "number": 9,
+      "id": "PR_kwDORQiQJ87RKIaW",
+      "title": "Changes it back to LatestObject",
+      "url": "https://github.com/martinduke/draft-duke-moq-subscribe-rewind/pull/9",
+      "state": "OPEN",
+      "author": "martinduke",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes #8 ",
+      "createdAt": "2026-04-09T14:21:50Z",
+      "updatedAt": "2026-04-09T14:21:50Z",
+      "baseRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "baseRefName": "main",
+      "baseRefOid": "1540630be1c73708bed8746f7e79a88dce662b21",
+      "headRepository": "martinduke/draft-duke-moq-subscribe-rewind",
+      "headRefName": "latest-object",
+      "headRefOid": "cbc4eca3f373534880953278ff8de6f7624682a9",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
