@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-04-12T03:34:45.502321+00:00",
+  "timestamp": "2026-04-14T03:30:48.286130+00:00",
   "repo": "martinduke/draft-duke-moq-subscribe-rewind",
   "labels": [
     {
@@ -118,9 +118,17 @@
       "labels": [],
       "body": "Option 1: this filter type cannot be in PUBLISH_OK, since there's no way for the publisher to respond.\n\nOption 2: the publisher can offered REWIND_GROUPS in PUBLISH, and the subscriber can shrink it in PUBLISH_OK.",
       "createdAt": "2026-04-09T19:12:55Z",
-      "updatedAt": "2026-04-09T19:12:55Z",
+      "updatedAt": "2026-04-13T06:43:52Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "Option 2\nIn a hypothetical SWITCH message, the Relay would PUBLISH the new track with REWIND_GROUPS.",
+          "createdAt": "2026-04-13T06:43:52Z",
+          "updatedAt": "2026-04-13T06:43:52Z"
+        }
+      ]
     },
     {
       "number": 11,
@@ -182,9 +190,17 @@
       "labels": [],
       "body": "OTT players need a reliable mechanism for joining a live stream. Typically they want 1-3 groups behind live.  The rewind draft currently indicates\n\n> If the subscriber wants the Groups even if SUBSCRIBE delivery semantics are not available, it MAY also send a Joining FETCH message, as described below.\n\nSince the client cannot know ahead of a time if the Groups they need to start are available in the cache, sending a Joining FETCH then is a de facto MUST for a client which needs reliability.\n\nInstead of having the client have to two send messages to join, can we extend Rewind to implement the behavior described in https://afrind.github.io/draft-frindell-moq-join-filters/draft-frindell-moq-join-filters.html. \n\nThat document defines two new MOQT Subscription Filters -- Join Relative Group and Join Absolute Group -- that enable a subscriber to receive both historical and live content on a single subscription. Unlike Joining FETCH, which delivers past objects on a single stream with head-of-line blocking, Join filters deliver historical content using SUBSCRIBE semantics: per-subgroup streams, subject to delivery timeout, priorities, and datagram forwarding preferences. The publisher uses a combination of cache and upstream FETCH to assemble complete groups for delivery.\n\nJoin Relative Group is identical to Rewind filter in syntax. \n\nTo modify Rewind proposal to support the features of both Join Relative Group and Join Absolute , we would only need to add a byte flag with 3 states\n0 - no fill, just give me what you have in cache\n1 - use the Rewind Groups attribute as an absolute Group ID\n2 - use the Rewind Groups attribute as a relative offset\n\nThis would give a clean and consistent interface for clients joining the stream and avoid the need for the client to have to make a parallel joining FETCH. In fact, this would allow us to remove Joining FETCH as a message. ",
       "createdAt": "2026-04-10T15:35:50Z",
-      "updatedAt": "2026-04-10T15:35:50Z",
+      "updatedAt": "2026-04-12T09:09:18Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "gwendalsimon",
+          "authorAssociation": "NONE",
+          "body": "I support the goal to make REWIND replace Joining FETCH.  \n\n@wilaw In your proposal, I see two binary flags:\n- a \"Reliability\" flag:  0 = best-effort (give me what you have in cache -- the current REWIND drat); 1= reliable (I want all groups)\n- an \"Operation\" flag. 0 = offset (the current REWIND draft); 1 = absolute (take group as starting point)\n\nThese two flags could cover multiple use-cases in the OTT industry, including\n- join an existing live stream with a buffer of 3 groups: REWIND 3 Rel 0 Ope 0\n- start an existing live stream from the beginning: REWIND 0 Rel 1 Ope 1\n- in a SWITCH where the Relay is instructed to switch to a new track 3 groups behind last Group, REWIND 3 Rel 1 Ope 0\n\nThe Reliability flag notifies the Relay that, if it is not sure that all groups are in its cache, it should issue a FETCH upstream. Since the Relay knows the last group, it can easily determine start and end group for this FETCH. \n\nIn consequence, FETCH could be back to a single operation mode with start and end range (the Standalone mode) ",
+          "createdAt": "2026-04-12T09:09:18Z",
+          "updatedAt": "2026-04-12T09:09:18Z"
+        }
+      ]
     }
   ],
   "pulls": [
